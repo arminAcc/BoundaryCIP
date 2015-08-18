@@ -2,6 +2,7 @@ add_library(bcip ${NGS_LIB_TYPE}
   specialcoef.cpp
   boundlaplace.cpp
   python.cpp
+  cipintegrator.cpp
 )
 
 set_target_properties(bcip PROPERTIES SUFFIX ".so")

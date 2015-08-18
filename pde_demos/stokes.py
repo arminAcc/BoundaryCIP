@@ -6,6 +6,7 @@ from ngsolve.utils import *
 
 from numpy import linspace
 from timeit import Timer
+from time import sleep
 from math import pi
 
 from netgen.geom2d import SplineGeometry
@@ -21,12 +22,12 @@ curveorder=3
 mesh.Curve(curveorder)
 #mesh.Refine()
 
-Vx = FESpace("h1ho", mesh, order=2, dirichlet=[2])
-Vy = FESpace("h1ho", mesh, order=2, dirichlet=[2])
+Vx = FESpace("h1ho", mesh, order=2, dirichlet=[2]) #, flags = {"dgjumps" : True} )
+Vy = FESpace("h1ho", mesh, order=2, dirichlet=[2]) #, flags = {"dgjumps" : True} )
 
-Q = FESpace("h1ho", mesh, order=1)
+Q = FESpace("h1ho", mesh, order=1) #, flags = {"dgjumps" : True})
 
-X = FESpace([Vx,Vy,Q])
+X = FESpace([Vx,Vy,Q] , flags = {"dgjumps" : True} )
 
 u,v,p = X.TrialFunction()
 wu,wv,wp = X.TestFunction()
@@ -48,8 +49,13 @@ a += SymbolicBFI( gradu*gradwu + gradv*gradwv + u*wu + v*wv
 
 # bval = DomainConstantCF([0,1])
 
+bval = DomainConstantCF([0,100])
+a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
+a.components[2] += BFI (name="cip", dim=2, coef=10.0) 
+
 # a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
 a.Assemble()
+
 
 #source = ConstantCF(1)
 f = LinearForm(X)
@@ -67,20 +73,21 @@ bvp.Do()
 
 vel = e1 * sol.components[0] + e2 * sol.components[1]
 Draw(mesh=mesh,cf=vel,name="velocity")
+Draw(sol.components[2])
 
 
-def AddStab(param=1.0):
-    bval = DomainConstantCF([0,param])
-    a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
-    X.Update()
-    sol.Update()
-    a.Assemble()
-    f.Assemble()
-    sol.components[0].Set(VariableCF("x"))
-    sol.components[1].Set(VariableCF("y"))
-    c.Update()
-    bvp.Do()
-    Redraw()
+# def AddStab(param=1.0):
+#     bval = DomainConstantCF([0,param])
+#     a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
+#     X.Update()
+#     sol.Update()
+#     a.Assemble()
+#     f.Assemble()
+#     sol.components[0].Set(VariableCF("x"))
+#     sol.components[1].Set(VariableCF("y"))
+#     c.Update()
+#     bvp.Do()
+#     Redraw()
 
 
 def MyRefine():
@@ -96,6 +103,9 @@ def MyRefine():
     bvp.Do()
     Redraw()
 
+# for i in range(10):
+#     sleep(5)
+#     AddStab(1)
 #Draw(sol)
 
 # print (a.mat)
