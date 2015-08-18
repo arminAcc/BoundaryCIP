@@ -14,7 +14,7 @@ namespace bcip {
   class DiffOp_GradTang : public DiffOp<DiffOp_GradTang>
   {
   public:
-    enum { DIM = 1 };
+    enum { DIM = 2 };
     enum { DIM_SPACE = 2 };
     enum { DIM_ELEMENT = 1 }; //DIM_ELEMENT < DIM_SPACE loest Abfrage nach boundary element aus
     enum { DIM_DMAT = 1 };
