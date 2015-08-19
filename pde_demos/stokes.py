@@ -31,7 +31,6 @@ def AddEdgeFunctions(mesh, fes, sumorder=1, bidx = 1):
     for sel in mesh.Elements(BND):
         if sel.index == bidx:
             facnr = bcip.GetSElEdge(mesh,sel.nr)
-            print ("facnr:",facnr)
             bcip.SetEdgeOrder(fes,facnr, sumorder)
     bcip.UpdateDofTables(fes)
     print ("after fes.ndof = ", fes.ndof)
