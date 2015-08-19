@@ -106,7 +106,7 @@ def stokesCIP(baseorderQ = 1, baseorderV = 2, bonusorderV = 0, boundaryStab = 1.
 
     ## Visualize pressure solution and reference pressure
     global ref_pressure
-    ref_pressure = VariableCF("(-0.04)") #-0.2*log(sqrt(x*x+y*y)))")
+    ref_pressure = VariableCF("(-0.2-0.2*log(sqrt(x*x+y*y)))")
     Draw(mesh=mesh,cf=ref_pressure,name="ref_pressure")
     global pressure
     pressure = sol.components[2]
@@ -116,7 +116,7 @@ def stokesCIP(baseorderQ = 1, baseorderV = 2, bonusorderV = 0, boundaryStab = 1.
     
     ## Visualize velocity solution and reference velocity
     global ref_vel
-    ref_vel= VariableCF("(0.04/(x*x+y*y) * x, 0.04/(x*x+y*y) * y)")
+    ref_vel= VariableCF("(0.2/(x*x+y*y) * x, 0.2/(x*x+y*y) * y)")
     # Draw(mesh=mesh,cf=ref_vel,name="ref_vel")
     
     global err_vel
