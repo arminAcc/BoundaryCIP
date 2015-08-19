@@ -244,8 +244,8 @@ namespace bcip {
 
         *testout << " orthdist h = " << orthdist << endl;
         // *testout << "       len1 = " << len1 << endl;
-
-        dmat *= coef->Evaluate(sip1) * len1 * orthdist * orthdist * orthdist * ir_facet[l].Weight();
+        double scal = pow(orthdist, 2*difforder + 1);
+        dmat *= coef->Evaluate(sip1) * len1 * scal * ir_facet[l].Weight();
         dbmat = dmat * bmat;
         elmat += Trans (bmat) * dbmat;
         // elmat = 1.0;
