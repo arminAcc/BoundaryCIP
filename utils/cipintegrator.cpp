@@ -32,7 +32,7 @@ namespace bcip {
   };
 
 
-  template <int D>
+  template <int D, int difforder=1>
   class dudnJumpIntegrator : public FacetBilinearFormIntegrator
   {
   protected:
@@ -156,8 +156,38 @@ namespace bcip {
 
         fel1_l2->CalcShape(sip1.IP(), mat1_shape);
         Vec<D> invjac_normal1 = inv_jac1 * normal1;
-        mat1_dudn = fel1_l2->GetDShape (sip1.IP(), lh) * invjac_normal1;
-	  
+
+
+
+        if (difforder == 1)
+        {
+          mat1_dudn = fel1_l2->GetDShape (sip1.IP(), lh) * invjac_normal1;
+        }
+        else
+        {
+          // DO num diff in normal direction
+          double eps = 1e-7;
+
+          IntegrationPoint ipl(sip1.IP());
+          IntegrationPoint ipc(sip1.IP());
+          IntegrationPoint ipr(sip1.IP());
+
+          for (int d = 0; d < D; ++d)
+            ipl(d) -= eps * invjac_normal1(d);
+          for (int d = 0; d < D; ++d)
+            ipr(d) += eps * invjac_normal1(d);
+
+          // double len = L2Norm(invjac_normal2);
+
+          FlatVector<> shapeleft = fel1_l2->GetShape (ipl, lh);
+          FlatVector<> shapecenter = fel1_l2->GetShape (ipc, lh);
+          FlatVector<> shaperight = fel1_l2->GetShape (ipr, lh);
+
+          mat1_dudn = shaperight - 2 * shapecenter + shapeleft;
+          mat1_dudn *= 1.0/(eps*eps);
+        }
+
+        
         IntegrationPoint ip2 = (LocalFacetNr2!=-1) ? transform2(LocalFacetNr2, ir_facet[l]) : ip1;
         MappedIntegrationPoint<D,D> sip2 (ip2, eltrans2);
         // double lam2 = coef_lam->Evaluate(sip2);
@@ -175,7 +205,36 @@ namespace bcip {
         Vec<D> invjac_normal2;;
         fel2_l2->CalcShape(sip2.IP(), mat2_shape);
         invjac_normal2 = inv_jac2 * normal2;
-        mat2_dudn = fel2_l2->GetDShape (sip2.IP(), lh) * invjac_normal2;
+
+        if (difforder == 1)
+        {
+          mat2_dudn = fel2_l2->GetDShape (sip2.IP(), lh) * invjac_normal2;
+        }
+        else
+        {
+          // DO num diff in normal direction
+          double eps = 1e-7;
+
+          IntegrationPoint ipl(sip2.IP());
+          IntegrationPoint ipc(sip2.IP());
+          IntegrationPoint ipr(sip2.IP());
+
+          for (int d = 0; d < D; ++d)
+            ipl(d) -= eps * invjac_normal2(d);
+          for (int d = 0; d < D; ++d)
+            ipr(d) += eps * invjac_normal2(d);
+
+          // double len = L2Norm(invjac_normal2);
+
+          FlatVector<> shapeleft = fel2_l2->GetShape (ipl, lh);
+          FlatVector<> shapecenter = fel2_l2->GetShape (ipc, lh);
+          FlatVector<> shaperight = fel2_l2->GetShape (ipr, lh);
+
+          mat2_dudn = shaperight - 2 * shapecenter + shapeleft;
+          mat2_dudn *= 1.0/(eps*eps);
+        }
+
+        
         bmat.Row(0).Range (0   , nd1)   = mat1_dudn;	    
         bmat.Row(0).Range (nd1   , nd1+nd2)   = mat2_dudn;
 
@@ -196,5 +255,6 @@ namespace bcip {
   };
 
 
-  static RegisterBilinearFormIntegrator<dudnJumpIntegrator<2> > init_gp_2d_1cip ("cip", 2, 1);
+  static RegisterBilinearFormIntegrator<dudnJumpIntegrator<2,1> > init_gp_2d_1cip ("cip", 2, 1);
+  static RegisterBilinearFormIntegrator<dudnJumpIntegrator<2,2> > init_gp_2d_1cip2 ("cip2ndorder", 2, 1);
 }

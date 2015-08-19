@@ -35,7 +35,7 @@ def AddEdgeFunctions(mesh, fes, sumorder=1, bidx = 1):
     bcip.UpdateDofTables(fes)
     print ("after fes.ndof = ", fes.ndof)
 
-def stokesCIP(baseorderQ = 1, baseorderV = 2, bonusorderV = 0, boundaryStab = 1.0, cipStab = 1.0, refinements = 0):
+def stokesCIP(baseorderQ = 2, baseorderV = 2, bonusorderV = 0, boundaryStab = 1.0, cipStab = 1.0, cipStab2 = 1.0, refinements = 0):
     
     geom = SplineGeometry("circleInCircle.in2d")
     mp = MeshingParameters (maxh=0.12)
@@ -78,8 +78,8 @@ def stokesCIP(baseorderQ = 1, baseorderV = 2, bonusorderV = 0, boundaryStab = 1.
         bval = DomainConstantCF([0,boundaryStab])
         a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
 
-    a.components[2] += BFI (name="cip", dim=2, coef=-cipStab) 
-    
+    a.components[2] += BFI (name="cip", dim=2, coef=-cipStab)
+    a.components[2] += BFI (name="cip2ndorder", dim=2, coef=-cipStab2)
     
     a.Assemble()
     
