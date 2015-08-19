@@ -15,18 +15,15 @@ from netgen.meshing import MeshingParameters
 
 from libbcip import *
 
-def AddEdgeFunctions(ng_mesh, mesh, fes, sumorder=1, bidx = 2):
+def AddEdgeFunctions(mesh, fes, sumorder=1, bidx = 1):
     print ("before fes.ndof = ", fes.ndof)
-    for selnr in range(len(ng_mesh.Elements1D())):
-        edge = ng_mesh.Elements1D()[selnr]
-        # print("edge.index",edge.index)
-        if edge.index == bidx:
-            facnr = bcip.GetSElEdge(mesh,selnr)
+    for sel in mesh.Elements(BND):
+        if sel.index == bidx:
+            facnr = bcip.GetSElEdge(mesh,sel.nr)
             print ("facnr:",facnr)
             bcip.SetEdgeOrder(fes,facnr, sumorder)
     bcip.UpdateDofTables(fes)
     print ("after fes.ndof = ", fes.ndof)
-
 
 def stokesCIP(baseorderQ = 1, baseorderV = 2, bonusorderV = 1, boundaryStab = 1.0, cipStab = 1.0, refinements = 0):
     
@@ -41,7 +38,7 @@ def stokesCIP(baseorderQ = 1, baseorderV = 2, bonusorderV = 1, boundaryStab = 1.
     
     V = FESpace("h1ho", mesh, order=baseorderV, dirichlet=[2]) #, flags = {"dgjumps" : True} )
     
-    AddEdgeFunctions(ng_mesh, mesh, V, baseorderV+bonusorderV, bidx=2)
+    AddEdgeFunctions(mesh, V, baseorderV+bonusorderV, bidx=1)
     print("V.ndof = ", V.ndof)
     Q = FESpace("h1ho", mesh, order=baseorderQ) #, flags = {"dgjumps" : True})
     
