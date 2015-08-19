@@ -18,7 +18,7 @@ geom = SplineGeometry("circleInCircle.in2d")
 mp = MeshingParameters (maxh=0.08)
 mesh = Mesh(geom.GenerateMesh (mp))
 
-curveorder=3
+curveorder=2
 mesh.Curve(curveorder)
 #mesh.Refine()
 
@@ -49,9 +49,17 @@ a += SymbolicBFI( gradu*gradwu + gradv*gradwv + u*wu + v*wv
 
 # bval = DomainConstantCF([0,1])
 
-bval = DomainConstantCF([0,100])
+bval = DomainConstantCF([0,1])
 a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
-a.components[2] += BFI (name="cip", dim=2, coef=10.0) 
+a.components[2] += BFI (name="cip", dim=2, coef=-1) 
+
+# blp = BFI (name="BoundLaplace", dim=2, coef=bval)
+# for elidx in range(mesh.GetNE(BND)):
+#     el = ElementId(BND,elidx)
+#     fel = Q.GetFE(el)
+#     print ("el: ", el)
+#     mat = blp.CalcElementMatrix(fel, mesh.GetTrafo(el))
+#     print ("Element matrix of element ", fel, ":\n", mat)
 
 # a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
 a.Assemble()
@@ -72,7 +80,7 @@ bvp = BVP(bf=a, lf=f, gf=sol, pre=c, maxsteps=20)
 bvp.Do()
 
 vel = e1 * sol.components[0] + e2 * sol.components[1]
-Draw(mesh=mesh,cf=vel,name="velocity")
+#Draw(mesh=mesh,cf=vel,name="velocity")
 Draw(sol.components[2])
 
 
@@ -89,6 +97,19 @@ Draw(sol.components[2])
 #     bvp.Do()
 #     Redraw()
 
+l= []
+
+ref_vel = VariableCF("(0.04/(x*x+y*y) * x, 0.04/(x*x+y*y) * y)")
+Draw(mesh=mesh,cf=ref_vel,name="ref_vel")
+
+ref_pressure = VariableCF("(0.04/(x*x+y*y))")
+pressure = sol.components[2]
+err = (ref_pressure - pressure)*(ref_pressure - pressure)
+
+l.append ( Integrate (err, mesh, VOL) )
+print(l)
+
+Draw(mesh=mesh,cf=ref_vel,name="ref_vel")
 
 def MyRefine():
     mesh.Refine()
@@ -101,12 +122,15 @@ def MyRefine():
     sol.components[1].Set(VariableCF("y"))
     c.Update()
     bvp.Do()
+    l.append ( Integrate (err, mesh, VOL) )
+    print(l)
     Redraw()
 
-# for i in range(10):
-#     sleep(5)
-#     AddStab(1)
-#Draw(sol)
+for i in range(2):
+    sleep(5)
+    MyRefine()
+    
+# Draw(sol)
 
 # print (a.mat)
 # print (f.vec)
