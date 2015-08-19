@@ -8,6 +8,7 @@ from numpy import linspace
 from timeit import Timer
 from time import sleep
 from math import pi
+from math import sqrt
 
 from netgen.geom2d import SplineGeometry
 from netgen.meshing import MeshingParameters
@@ -15,7 +16,7 @@ from netgen.meshing import MeshingParameters
 from libbcip import *
 
 geom = SplineGeometry("circleInCircle.in2d")
-mp = MeshingParameters (maxh=0.08)
+mp = MeshingParameters (maxh=0.12)
 mesh = Mesh(geom.GenerateMesh (mp))
 
 curveorder=2
@@ -44,8 +45,8 @@ e2 = VariableCF("(0,1)")
 
 a = BilinearForm(X, symmetric=True)
 a += SymbolicBFI( gradu*gradwu + gradv*gradwv + u*wu + v*wv 
-                  - (gradu[0] +  gradv[1]) * wp 
-                  - (gradwu[0] + gradwv[1]) * p)
+                  - ( gradu[0] +  gradv[1]) * wp 
+                  - (gradwu[0] + gradwv[1]) *  p)
 
 # bval = DomainConstantCF([0,1])
 
@@ -61,7 +62,7 @@ a.components[2] += BFI (name="cip", dim=2, coef=-1)
 #     mat = blp.CalcElementMatrix(fel, mesh.GetTrafo(el))
 #     print ("Element matrix of element ", fel, ":\n", mat)
 
-# a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
+a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
 a.Assemble()
 
 
@@ -97,19 +98,26 @@ Draw(sol.components[2])
 #     bvp.Do()
 #     Redraw()
 
-l= []
+l_vel= []
+l_pre= []
 
 ref_vel = VariableCF("(0.04/(x*x+y*y) * x, 0.04/(x*x+y*y) * y)")
-Draw(mesh=mesh,cf=ref_vel,name="ref_vel")
+# Draw(mesh=mesh,cf=ref_vel,name="ref_vel")
 
-ref_pressure = VariableCF("(0.04/(x*x+y*y))")
+ref_pressure = VariableCF("(-0.04)") #-0.2*log(sqrt(x*x+y*y)))")
+# Draw(mesh=mesh,cf=ref_pressure,name="ref_pressure")
 pressure = sol.components[2]
-err = (ref_pressure - pressure)*(ref_pressure - pressure)
+err_pre = (ref_pressure - pressure)*(ref_pressure - pressure)
 
-l.append ( Integrate (err, mesh, VOL) )
-print(l)
+vel = e1*sol.components[0] + e2*sol.components[1]
+err_vel = (ref_vel - vel)*(ref_vel - vel)
 
-Draw(mesh=mesh,cf=ref_vel,name="ref_vel")
+l_vel.append ( sqrt( Integrate (err_vel, mesh, VOL)) )
+l_pre.append ( sqrt( Integrate (err_pre, mesh, VOL)) )
+print("vel errors:",l_vel)
+print("pre errors:", l_pre)
+
+# Draw(mesh=mesh,cf=ref_vel,name="ref_vel")
 
 def MyRefine():
     mesh.Refine()
@@ -122,11 +130,13 @@ def MyRefine():
     sol.components[1].Set(VariableCF("y"))
     c.Update()
     bvp.Do()
-    l.append ( Integrate (err, mesh, VOL) )
-    print(l)
+    l_vel.append ( sqrt( Integrate (err_vel, mesh, VOL)) )
+    l_pre.append ( sqrt( Integrate (err_pre, mesh, VOL)) )
+    print("vel errors:", l_vel)
+    print("pre errors:", l_pre)
     Redraw()
 
-for i in range(2):
+for i in range(1):
     sleep(5)
     MyRefine()
     
@@ -136,3 +146,13 @@ for i in range(2):
 # print (f.vec)
 
 
+import matplotlib.pyplot as plt
+plt.yscale('log')
+plt.plot(l_vel, "-*", label="vel error")
+plt.plot(l_pre, "-+", label="pre error")
+plt.legend()
+plt.ion()
+plt.show()
+ 
+
+input("finished")  
