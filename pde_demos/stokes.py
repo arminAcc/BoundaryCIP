@@ -15,23 +15,37 @@ from netgen.meshing import MeshingParameters
 
 from libbcip import *
 
+def AddEdgeFunctions(ng_mesh, mesh, fes, sumorder=1, bidx = 2):
+    print ("before fes.ndof = ", fes.ndof)
+    for selnr in range(len(ng_mesh.Elements1D())):
+        edge = ng_mesh.Elements1D()[selnr]
+        # print("edge.index",edge.index)
+        if edge.index == bidx:
+            facnr = bcip.GetSElEdge(mesh,selnr)
+            print ("facnr:",facnr)
+            bcip.SetEdgeOrder(fes,facnr, sumorder)
+    bcip.UpdateDofTables(fes)
+    print ("after fes.ndof = ", fes.ndof)
 
-def stokesCIP(boundaryStab = 1.0):
+
+def stokesCIP(baseorderQ = 1, baseorderV = 2, bonusorderV = 1, boundaryStab = 1.0, cipStab = 1.0, refinements = 0):
     
     geom = SplineGeometry("circleInCircle.in2d")
     mp = MeshingParameters (maxh=0.12)
-    mesh = Mesh(geom.GenerateMesh (mp))
+    ng_mesh = geom.GenerateMesh (mp)
+    mesh = Mesh(ng_mesh)
     
     curveorder=2
     mesh.Curve(curveorder)
     #mesh.Refine()
     
-    Vx = FESpace("h1ho", mesh, order=2, dirichlet=[2]) #, flags = {"dgjumps" : True} )
-    Vy = FESpace("h1ho", mesh, order=2, dirichlet=[2]) #, flags = {"dgjumps" : True} )
+    V = FESpace("h1ho", mesh, order=baseorderV, dirichlet=[2]) #, flags = {"dgjumps" : True} )
     
-    Q = FESpace("h1ho", mesh, order=1) #, flags = {"dgjumps" : True})
+    AddEdgeFunctions(ng_mesh, mesh, V, baseorderV+bonusorderV, bidx=2)
+    print("V.ndof = ", V.ndof)
+    Q = FESpace("h1ho", mesh, order=baseorderQ) #, flags = {"dgjumps" : True})
     
-    X = FESpace([Vx,Vy,Q] , flags = {"dgjumps" : True} )
+    X = FESpace([V,V,Q] , flags = {"dgjumps" : True} )
     
     #segmentation fault ab hier
     
@@ -59,7 +73,7 @@ def stokesCIP(boundaryStab = 1.0):
         bval = DomainConstantCF([0,boundaryStab])
         a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
 
-    a.components[2] += BFI (name="cip", dim=2, coef=-1) 
+    a.components[2] += BFI (name="cip", dim=2, coef=-cipStab) 
     
     # blp = BFI (name="BoundLaplace", dim=2, coef=bval)
     # for elidx in range(mesh.GetNE(BND)):
@@ -69,7 +83,6 @@ def stokesCIP(boundaryStab = 1.0):
     #     mat = blp.CalcElementMatrix(fel, mesh.GetTrafo(el))
     #     print ("Element matrix of element ", fel, ":\n", mat)
     
-    a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
     a.Assemble()
     
     
@@ -144,7 +157,7 @@ def stokesCIP(boundaryStab = 1.0):
         print("pre errors:", l_pre)
         Redraw()
     
-    for i in range(1):
+    for i in range(refinements):
         #sleep(5)
         MyRefine()
         
@@ -164,3 +177,5 @@ def stokesCIP(boundaryStab = 1.0):
      
     
     #input("finished")  
+
+
