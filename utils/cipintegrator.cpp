@@ -72,10 +72,10 @@ namespace bcip {
                                   LocalHeap & lh) const
     {
       static int timer = NgProfiler::CreateTimer ("dudnJumpIntegratorIntegrator");
+      NgProfiler::RegionTimer reg (timer);
 
       if (LocalFacetNr2==-1) throw Exception("dudnJumpIntegrator: LocalFacetNr2==-1");
 
-      NgProfiler::RegionTimer reg (timer);
       const ScalarFiniteElement<D> * fel1_l2 = 
         dynamic_cast<const ScalarFiniteElement<D>*> (&volumefel1);
       ELEMENT_TYPE eltype1 = volumefel1.ElementType();

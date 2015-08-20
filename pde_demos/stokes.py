@@ -35,7 +35,7 @@ def AddEdgeFunctions(mesh, fes, sumorder=1, bidx = 1):
     bcip.UpdateDofTables(fes)
     print ("after fes.ndof = ", fes.ndof)
 
-def stokesCIP(baseorderQ = 2, baseorderV = 2, bonusorderV = 0, boundaryStab = 1.0, cipStab = 1.0, cipStab2 = 1.0, refinements = 0):
+def stokesCIP(baseorderQ = 1, baseorderV = 2, bonusorderV = 0, boundaryStab = 1.0, cipStab = 1.0, cipStab2 = 1.0, refinements = 0):
     
     geom = SplineGeometry("circleInCircle.in2d")
     mp = MeshingParameters (maxh=0.12)
@@ -52,12 +52,14 @@ def stokesCIP(baseorderQ = 2, baseorderV = 2, bonusorderV = 0, boundaryStab = 1.
         print("V.ndof = ", V.ndof)
         
     Q = FESpace("h1ho", mesh, order=baseorderQ)
+    QF= bcip.SurfaceFacetFESpace(mesh)
+    print(" Q.ndof = ", Q.ndof)
+    print("QF.ndof = ", QF.ndof)
+    X = FESpace([V,V,Q,QF] , flags = {"dgjumps" : True} )
     
-    X = FESpace([V,V,Q] , flags = {"dgjumps" : True} )
-    
-    u,v,p = X.TrialFunction()
-    wu,wv,wp = X.TestFunction()
-    
+    u,v,p,pf = X.TrialFunction()
+    wu,wv,wp,wpf = X.TestFunction()
+
     gradu = u.Deriv()
     gradv = v.Deriv()
     gradwu = wu.Deriv()
@@ -75,14 +77,16 @@ def stokesCIP(baseorderQ = 2, baseorderV = 2, bonusorderV = 0, boundaryStab = 1.
                       - (gradwu[0] + gradwv[1]) *  p)
     
     if boundaryStab > 0: 
-        bval = DomainConstantCF([0,boundaryStab])
-        a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
+        bval = DomainConstantCF([0,-boundaryStab])
+        if True:
+            a += BFI (name="bcip", dim=2, coef=-boundaryStab) 
+        else:
+            a.components[2] += BFI (name="BoundLaplace", dim=2, coef=bval) 
 
     a.components[2] += BFI (name="cip", dim=2, coef=-cipStab)
     a.components[2] += BFI (name="cip2ndorder", dim=2, coef=-cipStab2)
     
     a.Assemble()
-    
     
     #source = ConstantCF(1)
     f = LinearForm(X)

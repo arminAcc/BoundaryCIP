@@ -3,6 +3,7 @@ add_library(bcip ${NGS_LIB_TYPE}
   boundlaplace.cpp
   python.cpp
   cipintegrator.cpp
+  surffacetfes.cpp
 )
 
 set_target_properties(bcip PROPERTIES SUFFIX ".so")
@@ -14,5 +15,6 @@ endif(NOT WIN32)
 
 install( FILES
   specialcoef.hpp 
+  surffacetfes.hpp
   DESTINATION include
 )

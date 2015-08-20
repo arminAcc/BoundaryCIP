@@ -2,6 +2,7 @@
 
 #include <comp.hpp>
 #include "../utils/specialcoef.hpp"
+#include "../utils/surffacetfes.hpp"
 using namespace ngcomp;
 using namespace bcip;
 
@@ -77,6 +78,29 @@ void ExportNgsBCIP()
 
   bp::implicitly_convertible 
     <shared_ptr<ElementNrCoeff>, shared_ptr<CoefficientFunction> >(); 
+
+
+  bp::class_<SurfaceFacetFESpace, shared_ptr<SurfaceFacetFESpace>, bp::bases<FESpace>, boost::noncopyable> ("SurfaceFacetFESpace", bp::no_init)
+    .def("__init__", bp::make_constructor 
+         (FunctionPointer ([](shared_ptr<MeshAccess> ma)
+                           {
+                             Flags flags;
+                             auto fes = make_shared<SurfaceFacetFESpace> (ma,flags);
+
+                             LocalHeap lh (1000000, "FESpace::Update-heap");
+                             fes->Update(lh);
+                             fes->FinalizeUpdate(lh);
+                             
+                             return fes;
+                           }),
+          bp::default_call_policies(),     // need it to use named arguments
+          (bp::arg("mesh")=NULL))
+      );
+
+  bp::implicitly_convertible 
+    <shared_ptr<SurfaceFacetFESpace>, shared_ptr<FESpace> >(); 
+
+
   
 
 }
