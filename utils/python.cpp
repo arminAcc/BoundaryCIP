@@ -1,7 +1,9 @@
 #include <python_ngstd.hpp>
 
 #include <comp.hpp>
+#include "../utils/specialcoef.hpp"
 using namespace ngcomp;
+using namespace bcip;
 
 void ExportNgsBCIP() 
 {
@@ -44,6 +46,38 @@ void ExportNgsBCIP()
                                               } ),
           (bp::arg("space")=NULL))
     ;
+
+
+  bp::class_<ElementHCoeff, shared_ptr<ElementHCoeff>, bp::bases<CoefficientFunction>, boost::noncopyable> ("h", bp::no_init)
+    .def("__init__", bp::make_constructor 
+         (FunctionPointer ([]()
+                           {
+                             return make_shared<ElementHCoeff> ();
+                           })));
+    
+  bp::implicitly_convertible 
+    <shared_ptr<ElementHCoeff>, shared_ptr<CoefficientFunction> >();
+  
+  bp::class_<ElementIdxCoeff, shared_ptr<ElementIdxCoeff>, bp::bases<CoefficientFunction>, boost::noncopyable> ("idx", bp::no_init)
+    .def("__init__", bp::make_constructor 
+         (FunctionPointer ([]()
+                           {
+                             return make_shared<ElementIdxCoeff> ();
+                           })));
+
+  bp::implicitly_convertible 
+    <shared_ptr<ElementIdxCoeff>, shared_ptr<CoefficientFunction> >();
+  
+  bp::class_<ElementNrCoeff, shared_ptr<ElementNrCoeff>, bp::bases<CoefficientFunction>, boost::noncopyable> ("nr", bp::no_init)
+    .def("__init__", bp::make_constructor 
+         (FunctionPointer ([]()
+                           {
+                             return make_shared<ElementNrCoeff> ();
+                           })));
+
+  bp::implicitly_convertible 
+    <shared_ptr<ElementNrCoeff>, shared_ptr<CoefficientFunction> >(); 
+  
 
 }
 

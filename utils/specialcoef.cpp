@@ -23,4 +23,19 @@ namespace bcip {
       return 1.0;
   }
 
+  double ElementNrCoeff::Evaluate (const BaseMappedIntegrationPoint & mip) const
+  {
+    return mip.GetTransformation().GetElementNr();
+  }
+
+  double ElementIdxCoeff::Evaluate (const BaseMappedIntegrationPoint & mip) const
+  {
+    return mip.GetTransformation().GetElementIndex();
+  }
+
+  double ElementHCoeff::Evaluate (const BaseMappedIntegrationPoint & mip) const
+  {
+    return pow(mip.GetMeasure(),1.0/mip.Dim());
+  }
+  
 }//end of namespace bcip

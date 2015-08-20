@@ -12,6 +12,43 @@
 namespace bcip {
   using namespace ngfem;
 
+  class ElementNrCoeff : public CoefficientFunction
+  {
+    ///
+  public:
+    ///
+    ElementNrCoeff (){;};
+    ///
+    virtual ~ElementNrCoeff (){;};
+    ///
+    virtual double Evaluate (const BaseMappedIntegrationPoint & ip) const;
+  };
+
+  class ElementIdxCoeff : public CoefficientFunction
+  {
+    ///
+  public:
+    ///
+    ElementIdxCoeff (){;};
+    ///
+    virtual ~ElementIdxCoeff (){;};
+    ///
+    virtual double Evaluate (const BaseMappedIntegrationPoint & ip) const;
+  };
+
+  class ElementHCoeff : public CoefficientFunction
+  {
+    ///
+  public:
+    ///
+    ElementHCoeff (){;};
+    ///
+    virtual ~ElementHCoeff (){;};
+    ///
+    virtual double Evaluate (const BaseMappedIntegrationPoint & ip) const;
+  };
+  
+  
   class MySpecialCoeff : public CoefficientFunction
   {
     ///
