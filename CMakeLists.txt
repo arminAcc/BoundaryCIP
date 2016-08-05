@@ -33,7 +33,7 @@ endif(USE_PYTHON)
 
 
 set(NGS_LIB_TYPE SHARED)
-set(NETGEN_LIBS "-L${NETGENDIR}/lib -lngsolve -lngcomp -lngfem -lngstd -lngbla")
+set(NETGEN_LIBS "-L${NETGENDIR}/../lib -lngsolve -lngcomp -lngfem -lngstd -lngbla")
 
 if (ADDITIONAL_PATHS)
     list(REVERSE CMAKE_SYSTEM_PREFIX_PATH)
